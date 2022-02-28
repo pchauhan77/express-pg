@@ -1,16 +1,15 @@
 const httpStatus = require('http-status');
+const bcrypt = require('bcryptjs');
 const tokenService = require('./token.service');
 const userService = require('./user.service');
 // const Token = require('../models/token.model');
 const client = require('../db');
-const bcrypt = require('bcryptjs');
 const ApiError = require('../utils/ApiError');
 const { tokenTypes } = require('../config/tokens');
-const {ref} = require("joi");
 
 const isPasswordMatch = (password, user) => {
   return bcrypt.compare(password, user.password);
-}
+};
 
 /**
  * Login with username and password
@@ -26,9 +25,9 @@ const loginUserWithEmailAndPassword = async (email, password) => {
   return user;
 };
 
-const removeTokenDoc = async (token) => {
-   return await client.query(`DELETE FROM token WHERE token='${token}'`)
-}
+const removeTokenDoc = (token) => {
+  return client.query(`DELETE FROM token WHERE token='${token}'`);
+};
 
 /**
  * Logout
@@ -36,8 +35,7 @@ const removeTokenDoc = async (token) => {
  * @returns {Promise}
  */
 const logout = async (refreshToken) => {
-  const query =
-    `SELECT * FROM token WHERE token='${refreshToken}' AND type='${tokenTypes.REFRESH}' AND blacklisted='false'`
+  const query = `SELECT * FROM token WHERE token='${refreshToken}' AND type='${tokenTypes.REFRESH}' AND blacklisted='false'`;
   const refreshTokenDoc = await client.query(query);
   console.log('REFRESH TOKEN', refreshTokenDoc);
 
@@ -83,7 +81,7 @@ const resetPassword = async (resetPasswordToken, newPassword) => {
     }
     await userService.updateUserById(user.id, { password: newPassword });
 
-    const query = `DELETE FROM token WHERE user_id='${user.id}' AND type='${tokenTypes.RESET_PASSWORD}'`
+    const query = `DELETE FROM token WHERE user_id='${user.id}' AND type='${tokenTypes.RESET_PASSWORD}'`;
     await client.query(query);
     client.end;
   } catch (error) {
@@ -104,7 +102,7 @@ const verifyEmail = async (verifyEmailToken) => {
       throw new Error();
     }
 
-    const query = `DELETE FROM token WHERE user_id='${user.id}' AND type='${tokenTypes.VERIFY_EMAIL}'`
+    const query = `DELETE FROM token WHERE user_id='${user.id}' AND type='${tokenTypes.VERIFY_EMAIL}'`;
     await client.query(query);
     await client.query(`UPDATE users set is_email_verified='true' WHERE id='${user.id}'`);
     client.end;

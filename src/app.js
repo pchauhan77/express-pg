@@ -8,10 +8,11 @@ const httpStatus = require('http-status');
 const config = require('./config/config');
 const morgan = require('./config/morgan');
 const { jwtStrategy } = require('./config/passport');
-const { authLimiter } = require('./middlewares/rateLimiter');
+const { rateLimiter } = require('./middlewares/rateLimiter');
 const routes = require('./routes/v1');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
+const ipfilter = require('express-ipfilter').IpFilter
 
 const app = express();
 
@@ -35,17 +36,34 @@ app.use(xss());
 // gzip compression
 app.use(compression());
 
+// Allow the following IPs
+const ips = ['327.32.56.256']
+app.use(ipfilter(ips, { mode: 'deny'}))
+
 // enable cors
+// Put whitelist url here
+const whitelist = ['']
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log('Origin', origin);
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+// pass corsOptions to cors to enable on whitelist urls
 app.use(cors());
-app.options('*', cors());
+// app.options('*', cors());
 
 // jwt authentication
 app.use(passport.initialize());
 passport.use('jwt', jwtStrategy);
 
-// limit repeated failed requests to auth endpoints
+// limit repeated failed requests to all api endpoints
 if (config.env === 'production') {
-  app.use('/v1/auth', authLimiter);
+  app.use(rateLimiter);
 }
 
 // v1 api routes
