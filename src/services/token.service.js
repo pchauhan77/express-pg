@@ -35,7 +35,7 @@ const generateToken = (userId, expires, type, secret = config.jwt.secret) => {
  * @returns {Promise<Token>}
  */
 const saveToken = async (token, userId, expires, type, blacklisted = false) => {
-  const insertQuery = `insert into token(token, user_id, expires, type, blacklisted) 
+  const insertQuery = `insert into token(token, user_id, expires, type, blacklisted)
                        values('${token}',
                         '${userId}',
                         '${expires}',
@@ -54,7 +54,6 @@ const saveToken = async (token, userId, expires, type, blacklisted = false) => {
  */
 const verifyToken = async (token, type) => {
   const payload = jwt.verify(token, config.jwt.secret);
-  console.log('Payload', payload);
   const query = `SELECT * FROM token WHERE token='${token}' AND blacklisted='false'`
   const tokenDoc = await client.query(query);
   if (!tokenDoc) {

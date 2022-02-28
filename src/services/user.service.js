@@ -87,7 +87,6 @@ const queryUsers = async (filter, options) => {
     }
   }
 
-  console.log('QUERY', query);
   const result = await client.query(query);
   return result.rows;
 };
@@ -133,8 +132,6 @@ const updateUserById = async (userId, updateBody) => {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
     }
   }
-
-  console.log('QUERY', updateField);
 
   const result = await client.query(`UPDATE users ${updateField} where id='${userId}'`);
   return result.rows;

@@ -5,6 +5,7 @@ const compression = require('compression');
 const cors = require('cors');
 const passport = require('passport');
 const httpStatus = require('http-status');
+const ipfilter = require('express-ipfilter').IpFilter;
 const config = require('./config/config');
 const morgan = require('./config/morgan');
 const { jwtStrategy } = require('./config/passport');
@@ -12,7 +13,6 @@ const { rateLimiter } = require('./middlewares/rateLimiter');
 const routes = require('./routes/v1');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
-const ipfilter = require('express-ipfilter').IpFilter
 
 const app = express();
 
@@ -37,22 +37,21 @@ app.use(xss());
 app.use(compression());
 
 // Allow the following IPs
-const ips = ['327.32.56.256']
-app.use(ipfilter(ips, { mode: 'deny'}))
+const ips = ['327.32.56.256'];
+app.use(ipfilter(ips, { mode: 'deny' }));
 
 // enable cors
 // Put whitelist url here
-const whitelist = ['']
+const whitelist = [''];
 const corsOptions = {
-  origin: function (origin, callback) {
-    console.log('Origin', origin);
+  origin(origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true)
+      callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'))
+      callback(new Error('Not allowed by CORS'));
     }
-  }
-}
+  },
+};
 // pass corsOptions to cors to enable on whitelist urls
 app.use(cors());
 // app.options('*', cors());

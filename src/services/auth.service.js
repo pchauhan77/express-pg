@@ -37,7 +37,6 @@ const removeTokenDoc = (token) => {
 const logout = async (refreshToken) => {
   const query = `SELECT * FROM token WHERE token='${refreshToken}' AND type='${tokenTypes.REFRESH}' AND blacklisted='false'`;
   const refreshTokenDoc = await client.query(query);
-  console.log('REFRESH TOKEN', refreshTokenDoc);
 
   if (!refreshTokenDoc) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Not found');
@@ -54,7 +53,6 @@ const logout = async (refreshToken) => {
 const refreshAuth = async (refreshToken) => {
   try {
     const refreshTokenDoc = await tokenService.verifyToken(refreshToken, tokenTypes.REFRESH);
-    console.log('refreshTokenDoc', refreshTokenDoc);
     const user = await userService.getUserById(refreshTokenDoc.user_id);
     if (!user) {
       throw new Error();

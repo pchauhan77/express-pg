@@ -16,14 +16,12 @@ const createTodo = async (userBody) => {
   const insertQuery = `insert into todo(description) values('${description}') RETURNING *`
   const result = await client.query(insertQuery)
   client.end;
-  console.log('Result', result);
   return result.rows
 };
 
 const getTodos = async () => {
   const result = await client.query(`Select todo_id, description from todo`);
   client.end;
-  console.log("REsult", result)
   return result.rows;
 };
 
@@ -35,7 +33,6 @@ const getTodos = async () => {
 const getTodoById = async (id) => {
   const result = await client.query(`Select todo_id, description from todo where todo_id=${id}`);
   client.end;
-  console.log("REsult", result)
   return result.rows;
 };
 
@@ -54,7 +51,6 @@ const updateTodoById = async (todoId, updateBody) => {
 
   const result = await client.query(updateQuery)
   client.end;
-  console.log("REsult", result);
   return { message: 'Update was successful' };
 };
 
@@ -66,7 +62,6 @@ const updateTodoById = async (todoId, updateBody) => {
 const deleteTodoById = async (todoId) => {
   let insertQuery = `delete from todo where todo_id=${todoId}`
   const result = await client.query(insertQuery)
-  console.log("REsult", result)
   client.end;
   return { message: 'Deletion was successful' }
 };
