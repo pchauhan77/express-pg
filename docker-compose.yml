@@ -15,14 +15,16 @@ services:
     networks:
       - node-network
 
-  mongodb:
-    image: mongo:4.2.1-bionic
+  postgres:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     ports:
-      - '27017:27017'
+      - '5432:5432'
     volumes:
       - dbdata:/data/db
-    networks:
-      - node-network
 
 volumes:
   dbdata:
