@@ -6,23 +6,11 @@ const userController = require('../../controllers/user.controller');
 
 const router = express.Router();
 
-// router
-//   .route('/')
-//   .post('/createUser', validate(userValidation.createUser), userController.createUser)
-
-router.post('/createUser', validate(userValidation.createUser), userController.createUser)
-router.get('/getUsers', validate(userValidation.getUsers), userController.getUsers)
-router.get('/getUser/:userId', validate(userValidation.getUser), userController.getUser)
-router.delete('/deleteUser/:userId', validate(userValidation.deleteUser), userController.deleteUser)
-router.patch('/updateUser/:userId', validate(userValidation.updateUser), userController.updateUser)
-
-//   .get(auth('getUsers'), validate(userValidation.getUsers), userController.getUsers);
-//
-// router
-//   .route('/:userId')
-//   .get(auth('getUsers'), validate(userValidation.getUser), userController.getUser)
-//   .patch(auth('updateUsers'), validate(userValidation.updateUser), userController.updateUser)
-//   .delete(auth('deleteUsers'), validate(userValidation.deleteUser), userController.deleteUser);
+router.post('/createUser',auth(), validate(userValidation.createUser), userController.createUser)
+router.get('/getUsers', auth(), validate(userValidation.getUsers), userController.getUsers)
+router.get('/getUser/:userId',auth(), validate(userValidation.getUser), userController.getUser)
+router.delete('/deleteUser/:userId',auth(), validate(userValidation.deleteUser), userController.deleteUser)
+router.patch('/updateUser/:userId',auth(), validate(userValidation.updateUser), userController.updateUser)
 
 module.exports = router;
 

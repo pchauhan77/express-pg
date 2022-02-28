@@ -1,5 +1,4 @@
 const httpStatus = require('http-status');
-const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { todoService } = require('../services');
@@ -15,7 +14,7 @@ const getTodos = catchAsync(async (req, res) => {
 });
 
 const getTodo = catchAsync(async (req, res) => {
-  const user = await todoService.getTodoById(req.params.userId);
+  const user = await todoService.getTodoById(req.params.todoId);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Todo not found');
   }
@@ -23,13 +22,13 @@ const getTodo = catchAsync(async (req, res) => {
 });
 
 const updateTodo = catchAsync(async (req, res) => {
-  const user = await todoService.updateTodoById(req.params.userId, req.body);
+  const user = await todoService.updateTodoById(req.params.todoId, req.body);
   res.send(user);
 });
 
 const deleteTodo = catchAsync(async (req, res) => {
-  await todoService.deleteTodoById(req.params.userId);
-  res.status(httpStatus.NO_CONTENT).send();
+  const result = await todoService.deleteTodoById(req.params.todoId);
+  res.status(httpStatus.NO_CONTENT).send(result);
 });
 
 module.exports = {

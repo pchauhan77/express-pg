@@ -97,7 +97,7 @@ const queryUsers = async (filter, options) => {
  */
 const getUserById = async (id) => {
   const result = await client.query(`SELECT * FROM users WHERE id='${id}'`);
-  return result.rows
+  return result.rows[0]
 };
 
 /**

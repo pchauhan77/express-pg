@@ -8,20 +8,20 @@ const ApiError = require('../utils/ApiError');
  * @param userBody
  */
 const createTodo = async (userBody) => {
-  const { description, userId } = userBody;
-  if (description.length > 0) {
+  const { description } = userBody;
+  if (description.length === 0) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Description should not be empty');
   }
 
-  const insertQuery = `insert into todo(description, user_id) values('${description}', '${userId}')`
+  const insertQuery = `insert into todo(description) values('${description}') RETURNING *`
   const result = await client.query(insertQuery)
   client.end;
   console.log('Result', result);
   return result.rows
 };
 
-const getTodos = async (userId) => {
-  const result = await client.query(`Select * from todos where user_id=${userId}`);
+const getTodos = async () => {
+  const result = await client.query(`Select todo_id, description from todo`);
   client.end;
   console.log("REsult", result)
   return result.rows;
@@ -33,7 +33,7 @@ const getTodos = async (userId) => {
  * @returns {Promise<User>}
  */
 const getTodoById = async (id) => {
-  const result = await client.query(`Select * from todo where todo_id=${req.params.id}`);
+  const result = await client.query(`Select todo_id, description from todo where todo_id=${id}`);
   client.end;
   console.log("REsult", result)
   return result.rows;
@@ -41,31 +41,34 @@ const getTodoById = async (id) => {
 
 /**
  * Update user by id
- * @param {ObjectId} userId
+ * @param todoId
  * @param {Object} updateBody
- * @returns {Promise<string>}
+ * @returns {Promise<{message: string}>}
  */
-const updateTodoById = async (userId, updateBody) => {
+const updateTodoById = async (todoId, updateBody) => {
   const { description } = updateBody;
-  let updateQuery = `update todo set description = '${description}' where todo_id = ${userId}`
+  if (description.length === 0) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Description should not be empty');
+  }
+  let updateQuery = `update todo set description = '${description}' where todo_id = ${todoId}`
 
   const result = await client.query(updateQuery)
   client.end;
-  console.log("REsult", result)
-  return 'Update was successful';
+  console.log("REsult", result);
+  return { message: 'Update was successful' };
 };
 
 /**
  * Delete user by id
  * @param {ObjectId} userId
- * @returns {Promise<string>}
+ * @returns {Promise<{message: string}>}
  */
-const deleteTodoById = async (userId) => {
-  let insertQuery = `delete from todo where todo_id=${userId}`
+const deleteTodoById = async (todoId) => {
+  let insertQuery = `delete from todo where todo_id=${todoId}`
   const result = await client.query(insertQuery)
   console.log("REsult", result)
   client.end;
-  return 'Deletion was successful'
+  return { message: 'Deletion was successful' }
 };
 
 module.exports = {

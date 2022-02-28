@@ -8,7 +8,9 @@ const createTodo = {
 
 const getTodos = {
   query: Joi.object().keys({
-    description: Joi.string(),
+    sortBy: Joi.string(),
+    limit: Joi.number().integer(),
+    page: Joi.number().integer(),
   }),
 };
 

@@ -2,9 +2,11 @@ const httpStatus = require('http-status');
 const tokenService = require('./token.service');
 const userService = require('./user.service');
 // const Token = require('../models/token.model');
+const client = require('../db');
 const bcrypt = require('bcryptjs');
 const ApiError = require('../utils/ApiError');
 const { tokenTypes } = require('../config/tokens');
+const {ref} = require("joi");
 
 const isPasswordMatch = (password, user) => {
   return bcrypt.compare(password, user.password);
@@ -18,11 +20,15 @@ const isPasswordMatch = (password, user) => {
  */
 const loginUserWithEmailAndPassword = async (email, password) => {
   const user = await userService.getUserByEmail(email);
-  if (!user || !isPasswordMatch(password, user)) {
+  if (!user || !(await isPasswordMatch(password, user))) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
   }
   return user;
 };
+
+const removeTokenDoc = async (token) => {
+   return await client.query(`DELETE FROM token WHERE token='${token}'`)
+}
 
 /**
  * Logout
@@ -30,11 +36,16 @@ const loginUserWithEmailAndPassword = async (email, password) => {
  * @returns {Promise}
  */
 const logout = async (refreshToken) => {
-  const refreshTokenDoc = await Token.findOne({ token: refreshToken, type: tokenTypes.REFRESH, blacklisted: false });
+  const query =
+    `SELECT * FROM token WHERE token='${refreshToken}' AND type='${tokenTypes.REFRESH}' AND blacklisted='false'`
+  const refreshTokenDoc = await client.query(query);
+  console.log('REFRESH TOKEN', refreshTokenDoc);
+
   if (!refreshTokenDoc) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Not found');
   }
-  await refreshTokenDoc.remove();
+  await removeTokenDoc(refreshToken);
+  client.end;
 };
 
 /**
@@ -45,11 +56,12 @@ const logout = async (refreshToken) => {
 const refreshAuth = async (refreshToken) => {
   try {
     const refreshTokenDoc = await tokenService.verifyToken(refreshToken, tokenTypes.REFRESH);
-    const user = await userService.getUserById(refreshTokenDoc.user);
+    console.log('refreshTokenDoc', refreshTokenDoc);
+    const user = await userService.getUserById(refreshTokenDoc.user_id);
     if (!user) {
       throw new Error();
     }
-    await refreshTokenDoc.remove();
+    await removeTokenDoc(refreshToken);
     return tokenService.generateAuthTokens(user);
   } catch (error) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
@@ -65,12 +77,15 @@ const refreshAuth = async (refreshToken) => {
 const resetPassword = async (resetPasswordToken, newPassword) => {
   try {
     const resetPasswordTokenDoc = await tokenService.verifyToken(resetPasswordToken, tokenTypes.RESET_PASSWORD);
-    const user = await userService.getUserById(resetPasswordTokenDoc.user);
+    const user = await userService.getUserById(resetPasswordTokenDoc.user_id);
     if (!user) {
       throw new Error();
     }
     await userService.updateUserById(user.id, { password: newPassword });
-    await Token.deleteMany({ user: user.id, type: tokenTypes.RESET_PASSWORD });
+
+    const query = `DELETE FROM token WHERE user_id='${user.id}' AND type='${tokenTypes.RESET_PASSWORD}'`
+    await client.query(query);
+    client.end;
   } catch (error) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Password reset failed');
   }
@@ -84,12 +99,15 @@ const resetPassword = async (resetPasswordToken, newPassword) => {
 const verifyEmail = async (verifyEmailToken) => {
   try {
     const verifyEmailTokenDoc = await tokenService.verifyToken(verifyEmailToken, tokenTypes.VERIFY_EMAIL);
-    const user = await userService.getUserById(verifyEmailTokenDoc.user);
+    const user = await userService.getUserById(verifyEmailTokenDoc.user_id);
     if (!user) {
       throw new Error();
     }
-    await Token.deleteMany({ user: user.id, type: tokenTypes.VERIFY_EMAIL });
-    await userService.updateUserById(user.id, { isEmailVerified: true });
+
+    const query = `DELETE FROM token WHERE user_id='${user.id}' AND type='${tokenTypes.VERIFY_EMAIL}'`
+    await client.query(query);
+    await client.query(`UPDATE users set is_email_verified='true' WHERE id='${user.id}'`);
+    client.end;
   } catch (error) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Email verification failed');
   }

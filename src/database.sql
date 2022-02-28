@@ -2,8 +2,7 @@ CREATE DATABASE todo_database;
 
 CREATE TABLE todo(
  todo_id SERIAL PRIMARY KEY,
- description VARCHAR(255),
- user_id SERIAL REFERENCES users(id)
+ description VARCHAR(255)
 );
 
 CREATE TABLE users(
