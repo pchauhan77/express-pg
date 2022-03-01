@@ -7,7 +7,7 @@ const userController = require('../../controllers/user.controller');
 const router = express.Router();
 
 router.post('/createUser', auth(), validate(userValidation.createUser), userController.createUser);
-router.get('/getUsers', validate(userValidation.getUsers), userController.getUsers);
+router.get('/getUsers', auth(), validate(userValidation.getUsers), userController.getUsers);
 router.get('/getUser/:userId', auth(), validate(userValidation.getUser), userController.getUser);
 router.delete('/deleteUser/:userId', auth(), validate(userValidation.deleteUser), userController.deleteUser);
 router.patch('/updateUser/:userId', auth(), validate(userValidation.updateUser), userController.updateUser);
