@@ -53,7 +53,7 @@ const corsOptions = {
   },
 };
 // pass corsOptions to cors to enable on whitelist urls
-app.use(cors());
+app.use(cors(corsOptions));
 // app.options('*', cors());
 
 // jwt authentication
