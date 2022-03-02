@@ -6,6 +6,7 @@ const cors = require('cors');
 const passport = require('passport');
 const httpStatus = require('http-status');
 const ipfilter = require('express-ipfilter').IpFilter;
+const session = require('express-session');
 const config = require('./config/config');
 const morgan = require('./config/morgan');
 const { jwtStrategy } = require('./config/passport');
@@ -36,6 +37,20 @@ app.use(xss());
 // gzip compression
 app.use(compression());
 
+// secure-cookie-session
+const sess = {
+  secret: 's3Cur3',
+  resave: false,
+  saveUninitialized: true,
+  cookie: {},
+};
+
+if (app.get('env') === 'production') {
+  app.set('trust proxy', 1); // trust first proxy
+  sess.cookie.secure = true; // serve secure cookies
+}
+app.use(session(sess));
+
 // Allow the following IPs
 const ips = ['327.32.56.256'];
 app.use(ipfilter(ips, { mode: 'deny' }));
@@ -53,7 +68,8 @@ const corsOptions = {
   },
 };
 // pass corsOptions to cors to enable on whitelist urls
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions)); this will block all urls expect the urls present in whitelist array above
+app.use(cors());
 // app.options('*', cors());
 
 // jwt authentication
